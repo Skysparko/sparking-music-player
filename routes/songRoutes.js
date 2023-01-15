@@ -3,6 +3,8 @@ const isAuthorized = require("../middlewares/auth");
 const router = require("express").Router();
 const Song = require("../models/songModel");
 
+const fetch = require("node-fetch");
+
 const songsData = async () => {
   const apiKey = process.env.API_KEY;
   const response = await fetch(

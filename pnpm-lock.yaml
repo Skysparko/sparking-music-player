@@ -7,6 +7,7 @@ specifiers:
   express: ^4.18.2
   jsonwebtoken: ^9.0.0
   mongoose: ^6.8.3
+  node-fetch: 2.6.7
   nodemailer: ^6.9.0
   nodemon: ^2.0.20
   pg: ^8.8.0
@@ -22,6 +23,7 @@ dependencies:
   express: 4.18.2
   jsonwebtoken: 9.0.0
   mongoose: 6.8.3
+  node-fetch: 2.6.7
   nodemailer: 6.9.0
   pg: 8.8.0
   pg-hstore: 2.3.4
@@ -1917,6 +1919,18 @@ packages:
 
   /node-addon-api/5.1.0:
     resolution: {integrity: sha512-eh0GgfEkpnoWDq+VY8OyvYhFEzBk6jIYbRKdIlyTiAXIVJ8PyBaKb0rp7oDtoddbdoHWhq8wwr+XZ81F1rpNdA==}
+    dev: false
+
+  /node-fetch/2.6.7:
+    resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
+    engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
+    dependencies:
+      whatwg-url: 5.0.0
     dev: false
 
   /node-fetch/2.6.8:
