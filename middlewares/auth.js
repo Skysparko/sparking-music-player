@@ -1,32 +1,29 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+require("dotenv").config();
+//checking if the user is logined or not
+const isAuthorized = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-const isAuthenticated = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
+  const token = authHeader.split(" ")[1];
 
-    if (!authHeader) {
-      return res.status(401).json({
-        err: "You must be logged in",
-      });
-    }
-
-    const token = authHeader.split(" ")[1]; // This is the bearer token
-
-    const decoded = jwt.verify(token, process.env.SECRET);
-    const user = await User.findById(decoded.user.id);
-
-    if (!user) {
-      return res.status(404).json({ err: "User not found" });
-    }
-    req.user = user;
-    next();
-  } catch (err) {
-    console.log(err);
-    res.status(503).json({
-      err: "Token is not valid",
+  if (!token) {
+    return res.status(404).json({
+      err: "token not found",
     });
   }
-};
 
-module.exports = isAuthenticated;
+  const decodedToken = jwt.verify(token, process.env.SECRET);
+
+  const user = await User.findOne({ userID: decodedToken.user.id });
+
+  if (!user) {
+    return res.status(404).json({
+      err: "user not found",
+    });
+  }
+
+  req.user = user;
+  next();
+};
+module.exports = isAuthorized;

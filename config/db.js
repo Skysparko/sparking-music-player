@@ -1,21 +1,25 @@
-const { Sequelize } = require("sequelize");
+const mongoose = require("mongoose");
 
-//creating database and giving it (name,user,password,{options})
-const createDB = new Sequelize("Sparking-db", "skysparko", "yesiamsparko", {
-  dialect: "sqlite",
-  host: "./config/db.sqlite",
-});
+const dbUrl =
+  "mongodb+srv://skysparko:uLpbTRQ0dPTNao67@sparking-music.5mxqyae.mongodb.net/sparking-db?retryWrites=true&w=majority";
 
-//checking connection for db
+const connectionParams = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
+
+mongoose.set("strictQuery", false);
+
 const connectDB = () => {
-  createDB
-    .sync()
+  mongoose
+    .connect(dbUrl, connectionParams)
     .then(() => {
-      console.log("Db is connected");
+      console.log("DB is connected");
     })
     .catch((e) => {
-      console.log("Db is not connected\n<<<<<<<<", e);
+      console.log("DB is not connected");
+      console.log("<<<<<<<<", e);
     });
 };
 
-module.exports = { createDB, connectDB };
+module.exports = connectDB;

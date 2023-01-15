@@ -21,11 +21,7 @@ router.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    const existingUser = await User.findOne({
-      where: {
-        email: email,
-      },
-    }); //* check if the user with the entered email already exists in the database
+    const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(403).json({ err: "User already exists" });
@@ -47,19 +43,18 @@ router.post("/signup", async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, (saltOrRounds = 10)); //* hashes the password with a salt, generated with the specified number of rounds
+    const hashedPassword = await bcrypt.hash(password, (saltOrRounds = 10));
 
     const userID = uuidv4();
     const userDetails = {
+      userID,
       name,
       email,
       password: hashedPassword,
-      token: userID,
     };
 
-    console.log(userDetails.token);
-
-    const newUser = await User.create(userDetails); //* creates a new user in the database
+    const newUser = new User(userDetails);
+    await newUser.save();
 
     console.log(newUser);
     return res.status(201).json({ msg: "User created successfully" });
@@ -83,7 +78,7 @@ router.post("/signin", async (req, res) => {
       return res.status(400).json({ err: "Please enter your password" });
     }
 
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({ email });
 
     if (!existingUser) {
       return res.status(404).json({ err: "User not found" });
@@ -92,13 +87,14 @@ router.post("/signin", async (req, res) => {
     const isPasswordCorrect = await bcrypt.compare(
       password,
       existingUser.password
-    ); //* compares the entered password with the hashed password in the database
+    );
 
     if (!isPasswordCorrect) {
-      return res.status(400).json({ err: "Invalid credentials" });
+      return res.status(400).json({ err: "email or password is incorrect" });
     }
-    console.log(existingUser, existingUser.id);
-    const payload = { user: { id: existingUser.id } };
+
+    console.log(existingUser, existingUser.userID);
+    const payload = { user: { id: existingUser.userID } };
     const bearerToken = await jwt.sign(payload, process.env.SECRET, {
       expiresIn: 360000,
     });
@@ -134,21 +130,18 @@ router.post("/forgot-password", async (req, res) => {
       return res.status(403).send("please enter valid email");
     }
 
-    const emailExists = await User.findOne({
-      where: {
-        email,
-      },
-    });
+    const userExists = await User.findOne({ email });
 
-    if (!emailExists) {
-      return res.status(404).send("email not found");
+    if (!userExists) {
+      return res.status(404).send("User not found");
     }
 
-    console.log(emailExists);
+    const payload = { userID: userExists.userID };
+    const forgotToken = await jwt.sign(payload, process.env.SECRET, {
+      expiresIn: 360000,
+    });
 
-    const token = await emailExists.token;
-
-    const resetLink = `${process.env.APP_URL}/api/v1/user/forgot-password/${token}`;
+    const resetLink = `${process.env.APP_URL}/api/v1/user/forgot-password/${forgotToken}`;
 
     const mailOptions = {
       from: "shubhamrakhecha5@gmail.com",
@@ -176,11 +169,8 @@ router.post("/forgot-password", async (req, res) => {
 
 router.put("/forgot-password/:userID", async (req, res) => {
   try {
-    const user = await User.findOne({
-      where: {
-        token: req.params.userID,
-      },
-    });
+    const decodedToken = jwt.verify(req.params.userID, process.env.SECRET);
+    const user = await User.findOne({ userID: decodedToken.userID });
 
     if (!user) {
       return res.status(404).send("User not found");
@@ -195,9 +185,10 @@ router.put("/forgot-password/:userID", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, (saltOrRounds = 10));
-    // hashes the password with a salt, generated with the specified number of rounds
 
-    user.update({ password: hashedPassword });
+    user.password = hashedPassword;
+
+    await user.save();
 
     return res.status(200).send("password changed sucessfully");
   } catch (err) {
