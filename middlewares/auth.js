@@ -5,6 +5,12 @@ require("dotenv").config();
 const isAuthorized = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
+  if (!authHeader) {
+    return res.status(404).json({
+      err: "authHeader not found",
+    });
+  }
+
   const token = authHeader.split(" ")[1];
 
   if (!token) {
